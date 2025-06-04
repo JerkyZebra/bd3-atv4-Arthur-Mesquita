@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> ARTHANA</title>
+
+    <link rel="stylesheet" href="./styles.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.js"></script>
+</head>
+
+<body>
+
+    <script src="socket.io/socket.io.js"></script>
+    
+    <div class="header_container">
+    <!-- <img src="./images/msn.png" /> -->
+        <h1># Arthana Messenger # </h1>
+    </div>
+
+    <div class="button_post_container">
+        <button name="btn_post" id="btn_post">POSTAR</button>
+    </div>
+
+    <div class="posts_container"></div>
+
+    <!-- ESTRUTURA HTML DO FORMULÁRIO MODAL: -->
+    <div id="myModal" class="modal">
+        
+        <div class="modal-content">
+
+            <span class="close">&times;</span>
+            
+            <div class="form_post_container">
+
+                <h4>DESABAFE</h4>
+
+                <form name="frm_post" id="frm_post">
+
+                    <input type="text" name="txt_titulo" id="txt_titulo" placeholder="TITULO">
+                    <br />
+                    <input type="text" name="txt_post" id="txt_post"  placeholder="DESABAFO">
+                    <br />
+                    <button name="btn_postar" id="btn_postar">ENVIAR</button>
+
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="socket.io/socket.io.js"></script>
+
+
+    <script>
+
+        /***** ABERTURA/FECHAMENTO DO FORMUÁRIO MODAL *****/
+        let btn = document.getElementById('btn_post');
+        let modal = document.getElementById("myModal");
+        let span = document.getElementsByClassName("close")[0];
+
+        //ABRE O FORMULÁRIO MODAL:
+        btn.addEventListener('click', function (event) {
+            event.preventDefault();
+             modal.style.display = "block";
+        });
+
+        //FECHA O FORMULÁRIO MODAL:
+        span.addEventListener('click', function(event){
+            modal.style.display = "none";
+        });
+
+        //INICIO DA CONEXÃO
+        const socket = io('http://localhost:3000');
+
+            function renderMessage(message) {
+            $('.posts_container').append(
+                '<div class="message"><strong>' +
+                message.usuario + ' ' + message.data_hora +
+                '</strong>: ' + message.message + '</div>'
+            );
+        }
+
+        socket.on('previousMessage', function(messages) {
+            for(message of messages){
+                renderMessage(message);
+            }
+        });
+
+        socket.on('receivedMessage', function(message) {
+    renderMessage(message); 
+        });
+   
+
+        $('#frm_post').submit(function(event) {
+            event.preventDefault();
+
+            var usuario = $('#txt_titulo').val();
+            var mensagem = $('#txt_post').val();
+
+            console.log('USUÁRIO: '+ usuario);
+            console.log('MENSAGEM: '+ mensagem);
+
+            let data_hora_obj = new  Date();
+
+            let data_hora_msg = `[${data_hora_obj.getDate()}/${data_hora_obj.getMonth()}/${data_hora_obj.getFullYear()}-${data_hora_obj.getHours()}:${data_hora_obj.getMinutes()}:${data_hora_obj.getSeconds()}]
+            `;
+
+            var messageObject = {
+                usuario: usuario,
+                data_hora:data_hora_msg,
+                message: mensagem
+            }
+
+            renderMessage(messageObject);
+
+            socket.emit('sendMessage', messageObject);
+
+            console.log('JSON: ' + JSON.stringify(messageObject));
+        });
+        
+
+    </script>
+
+    <img src="./images/2VLj.gif" class="corner-gif" alt="smileys" />
+
+
+    </body>
+
+</html>
